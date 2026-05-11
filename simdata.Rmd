@@ -1,0 +1,216 @@
+---
+title: "Untitled"
+author: "Pierrick Schafer"
+date: "2026-05-09"
+output: word_document
+---
+
+```{r}
+# Reproducibility
+set.seed(123)
+
+# Time vector
+time <- seq(0, 75, by = 0.1)
+
+# Baseline pupil size
+baseline <- 96 + rnorm(length(time), 0, 1)
+
+# Event times
+events <- c(3, 14, 25, 36, 47, 57)
+
+# Drop amplitudes (depth of constriction)
+dip_amplitude <- c(8, 28, 10, 18, 45, 55)
+
+# Recovery time constant (same as before)
+tau_recovery <- 1.2
+
+# Initialize dip signal
+dips <- rep(0, length(time))
+
+# Abrupt onset + exponential recovery
+for (i in seq_along(events)) {
+  onset <- time >= events[i]
+  dips[onset] <- dips[onset] -
+    dip_amplitude[i] * exp(-(time[onset] - events[i]) / tau_recovery)
+}
+
+# Final signal
+pupil_size <- baseline + dips
+pupil_size[pupil_size < 0] <- 0
+
+# Plot
+plot(
+  time, pupil_size,
+  type = "l",
+  lwd = 2,
+  col = "red",
+  xlab = "Time (s)",
+  ylab = "Pupil Size (%)",
+  ylim = c(0, 120)
+)
+
+```
+
+```{r}
+# Reproducibility
+# Reproducibility
+set.seed(123)
+
+# Time vector
+time <- seq(0, 75, by = 0.1)
+
+# Baseline pupil size
+baseline <- 96 + rnorm(length(time), 0, 1)
+
+# Event times
+events <- c(3, 14, 25, 36, 47, 57)
+
+# Drop amplitudes (depth of constriction)
+dip_amplitude <- c(8, 28, 10, 18, 45, 55)
+
+# Recovery time constant (same as before)
+tau_recovery <- 1.2
+
+# Initialize dip signal
+dips <- rep(0, length(time))
+
+# Abrupt onset + exponential recovery
+for (i in seq_along(events)) {
+  onset <- time >= events[i]
+  dips[onset] <- dips[onset] -
+    dip_amplitude[i] * exp(-(time[onset] - events[i]) / tau_recovery)
+}
+
+# Final signal
+pupil_size <- baseline + dips
+pupil_size[pupil_size < 0] <- 0
+
+
+set.seed(321)
+
+# Time vector
+time <- seq(0, 75, by = 0.05)
+
+# Baseline with mild noise
+baseline <- 96 + rnorm(length(time), 0, 0.7)
+
+# Stimulus events
+events <- c(3, 14, 25, 36, 47, 57)
+dip_amplitude <- c(8, 28, 10, 18, 45, 55)
+tau_recovery <- 1.2
+
+# Event-related pupil constrictions
+dips <- rep(0, length(time))
+for (i in seq_along(events)) {
+  idx <- time >= events[i]
+  dips[idx] <- dips[idx] -
+    dip_amplitude[i] * exp(-(time[idx] - events[i]) / tau_recovery)
+}
+
+# --- Blink artifacts ---
+n_blinks <- 35
+blink_times <- sort(runif(n_blinks, 1, 75))
+blink_depth <- runif(n_blinks, 6, 18)      # how deep the blink is
+blink_width <- runif(n_blinks, 0.03, 0.08) # how brief it is
+
+blinks <- rep(0, length(time))
+for (i in seq_len(n_blinks)) {
+  blinks <- blinks -
+    blink_depth[i] * exp(-((time - blink_times[i])^2) /
+                          (2 * blink_width[i]^2))
+}
+
+# Combine all components
+pupil_size_N <- baseline + dips + blinks
+pupil_size_N[pupil_size_N < 0] <- 0
+
+# Plot
+plot(
+  time, pupil_size_N,
+  type = "l",
+  lwd = 2,
+  col = "black",
+  xlab = "Time (s)",
+  ylab = "Pupil Size (%)",
+  ylim = c(0, 120)
+)
+lines(pupil_size, col = "red")
+
+```
+
+```{r}
+# Reproducibility
+set.seed(321)
+
+# Time vector
+time <- seq(0, 75, by = 0.05)
+
+# Baseline pupil size
+baseline <- 96 + rnorm(length(time), 0, 0.7)
+
+# Stimulus events
+events <- c(3, 14, 25, 36, 47, 57)
+dip_amplitude <- c(8, 28, 10, 18, 45, 55)
+tau_recovery <- 1.2
+
+# ----- Event-related constrictions -----
+dips <- rep(0, length(time))
+for (i in seq_along(events)) {
+  idx <- time >= events[i]
+  dips[idx] <- dips[idx] -
+    dip_amplitude[i] * exp(-(time[idx] - events[i]) / tau_recovery)
+}
+
+# Clean pupil signal
+pupil_clean <- baseline + dips
+pupil_clean[pupil_clean < 0] <- 0
+
+# ----- Blink artifacts -----
+n_blinks <- 35
+blink_times <- sort(runif(n_blinks, 1, 75))
+blink_depth <- runif(n_blinks, 6, 18)
+blink_width <- runif(n_blinks, 0.03, 0.08)
+
+blinks <- rep(0, length(time))
+for (i in seq_len(n_blinks)) {
+  blinks <- blinks -
+    blink_depth[i] * exp(-((time - blink_times[i])^2) /
+                          (2 * blink_width[i]^2))
+}
+
+# Artifact-contaminated signal
+pupil_artifact <- pupil_clean + blinks
+pupil_artifact[pupil_artifact < 0] <- 0
+
+# ----- Plot both curves -----
+plot(
+  time, pupil_artifact,
+  type = "l",
+  lwd = 2,
+  col = "lightgreen",
+  xlab = "Time (s)",
+  ylab = "Pupil Size (%)",
+  ylim = c(0, 120)
+)
+
+lines(
+  time, pupil_clean,
+  lwd = 2,
+  col = "lightsalmon"
+)
+
+legend(
+  "bottomright",
+  legend = c("With artifacts", "Clean signal"),
+  col = c("lightgreen", "lightsalmon"),
+  lwd = 2,
+  bty = "n"
+)
+
+```
+
+
+
+
+
+
